@@ -213,13 +213,7 @@ const MEDIOS = ["CMR","BICE Infinite","PAT BICE Infinite","Cencosud Scotiabank",
 let gastos = JSON.parse(localStorage.getItem('gastos')||'[]');
 let medioSel = '';
 let currentView = 'nuevo';
-
-// Init selects
-const selCat = document.getElementById('fCat');
-const selSub = document.getElementById('fSub');
-Object.keys(CATS).forEach(c=>{
-  const o=document.createElement('option');o.value=c;o.textContent=c;selCat.appendChild(o);
-});
+let selCat, selSub;
 
 function onCatChange(){
   const cat=selCat.value;
@@ -227,21 +221,32 @@ function onCatChange(){
   if(cat&&CATS[cat]) CATS[cat].forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;selSub.appendChild(o);});
 }
 
-// Chips
-const chipsDiv=document.getElementById('chips');
-MEDIOS.forEach(m=>{
-  const c=document.createElement('span');
-  c.className='chip';c.textContent=m;
-  c.onclick=()=>{
-    medioSel=medioSel===m?'':m;
-    document.querySelectorAll('.chip').forEach(x=>x.classList.remove('sel'));
-    if(medioSel) c.classList.add('sel');
-  };
-  chipsDiv.appendChild(c);
-});
+document.addEventListener('DOMContentLoaded', function(){
+  // Init selects
+  selCat = document.getElementById('fCat');
+  selSub = document.getElementById('fSub');
+  Object.keys(CATS).forEach(c=>{
+    const o=document.createElement('option');o.value=c;o.textContent=c;selCat.appendChild(o);
+  });
+  selCat.addEventListener('change', onCatChange);
 
-// Date default
-document.getElementById('fFecha').value=new Date().toISOString().slice(0,10);
+  // Chips
+  const chipsDiv=document.getElementById('chips');
+  MEDIOS.forEach(m=>{
+    const c=document.createElement('span');
+    c.className='chip';c.textContent=m;
+    c.onclick=()=>{
+      medioSel=medioSel===m?'':m;
+      document.querySelectorAll('.chip').forEach(x=>x.classList.remove('sel'));
+      if(medioSel) c.classList.add('sel');
+    };
+    chipsDiv.appendChild(c);
+  });
+
+  // Date default
+  document.getElementById('fFecha').value=new Date().toISOString().slice(0,10);
+  updateTotal();
+});
 
 // Nav
 function goTo(v){
@@ -369,10 +374,12 @@ function exportar(){
   toast('Excel descargado ✓');
 }
 
-// Service worker
-if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
-
-updateTotal();
+// Service worker - forzar actualización de caché
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').then(reg=>{
+    reg.update();
+  });
+}
 </script>
 </body>
 </html>
