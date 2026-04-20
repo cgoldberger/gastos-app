@@ -11,77 +11,39 @@
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-:root {
-  --bg: #0f1117;
-  --surface: #1a1d27;
-  --surface2: #232636;
-  --border: rgba(255,255,255,0.08);
-  --border2: rgba(255,255,255,0.15);
-  --text: #f0f0f0;
-  --muted: #8890a4;
-  --accent: #4ade80;
-  --accent-dim: rgba(74,222,128,0.12);
-  --danger: #f87171;
-  --mono: 'DM Mono', monospace;
-  --sans: 'DM Sans', sans-serif;
-  --radius: 14px;
-  --radius-sm: 8px;
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-}
+:root{--bg:#0f1117;--surface:#1a1d27;--surface2:#232636;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.15);--text:#f0f0f0;--muted:#8890a4;--accent:#4ade80;--accent-dim:rgba(74,222,128,0.12);--danger:#f87171;--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--radius:14px;--radius-sm:8px;--safe-bottom:env(safe-area-inset-bottom,0px)}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--sans);overflow:hidden}
-
-/* Layout */
 #app{display:flex;flex-direction:column;height:100vh;height:100dvh}
 #header{padding:16px 20px 12px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg)}
 #content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 0 calc(70px + var(--safe-bottom)) 0}
 #nav{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);display:flex;padding:8px 0 calc(8px + var(--safe-bottom));z-index:100}
-
-/* Header */
 .header-row{display:flex;align-items:center;justify-content:space-between}
 .app-title{font-family:var(--mono);font-size:13px;color:var(--accent);letter-spacing:0.08em;text-transform:uppercase}
 .total-pill{font-family:var(--mono);font-size:12px;background:var(--accent-dim);color:var(--accent);padding:4px 10px;border-radius:20px;border:1px solid rgba(74,222,128,0.25)}
-
-/* Nav */
 .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;background:none;border:none;color:var(--muted);font-family:var(--sans);font-size:10px;cursor:pointer;transition:color .15s}
 .nav-btn.active{color:var(--accent)}
 .nav-btn svg{width:22px;height:22px}
-
-/* Views */
 .view{display:none;padding:20px}
 .view.active{display:block}
-
-/* Form */
 .field{margin-bottom:16px}
 .field label{display:block;font-size:11px;font-family:var(--mono);color:var(--muted);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px}
-.field input,.field select,.field textarea{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--sans);font-size:16px;padding:13px 14px;outline:none;-webkit-appearance:none;appearance:none;transition:border-color .15s}
+.field input,.field select{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--sans);font-size:16px;padding:13px 14px;outline:none;-webkit-appearance:none;appearance:none;transition:border-color .15s}
 .field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238890a4' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
 .field input:focus,.field select:focus{border-color:var(--accent)}
 .field input::placeholder{color:var(--muted)}
-
-/* Medio de pago chips */
 .chips{display:flex;flex-wrap:wrap;gap:7px}
 .chip{padding:7px 13px;border-radius:20px;font-size:13px;font-family:var(--mono);cursor:pointer;border:1px solid var(--border2);background:var(--surface);color:var(--muted);transition:all .15s;user-select:none}
 .chip.sel{background:var(--accent-dim);border-color:var(--accent);color:var(--accent)}
-
-/* Row */
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-
-/* CTA Button */
 .cta{width:100%;padding:16px;background:var(--accent);color:#0f1117;border:none;border-radius:var(--radius);font-family:var(--mono);font-size:14px;font-weight:500;letter-spacing:0.05em;cursor:pointer;margin-top:8px;transition:opacity .15s}
 .cta:active{opacity:0.8}
 .cta.secondary{background:var(--surface2);color:var(--text);margin-top:10px}
-.cta:disabled{opacity:0.4;cursor:default}
-
-/* Toast */
 #toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--surface2);color:var(--text);font-size:13px;font-family:var(--mono);padding:10px 18px;border-radius:20px;border:1px solid var(--border2);z-index:999;transition:transform .3s ease;white-space:nowrap}
 #toast.show{transform:translateX(-50%) translateY(0)}
 #toast.ok{border-color:var(--accent);color:var(--accent)}
 #toast.err{border-color:var(--danger);color:var(--danger)}
-
-/* Lista gastos */
 .empty{text-align:center;padding:60px 20px;color:var(--muted);font-size:14px}
 .empty-icon{font-size:40px;margin-bottom:12px;opacity:0.4}
 .gasto-item{background:var(--surface);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;border:1px solid var(--border);position:relative}
@@ -89,17 +51,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .gasto-dest{font-size:15px;font-weight:500;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gasto-monto{font-family:var(--mono);font-size:15px;color:var(--accent);white-space:nowrap}
 .gasto-meta{display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap}
-.gasto-cat{font-size:11px;font-family:var(--mono);color:var(--muted)}
-.gasto-fecha{font-size:11px;font-family:var(--mono);color:var(--muted)}
+.gasto-cat,.gasto-fecha{font-size:11px;font-family:var(--mono);color:var(--muted)}
 .gasto-sep{color:var(--border2);font-size:10px}
 .gasto-medio{font-size:10px;background:var(--surface2);color:var(--muted);padding:2px 7px;border-radius:10px;font-family:var(--mono)}
-.del-btn{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;padding:4px;transition:color .15s}
-.del-btn:hover{color:var(--danger)}
-
-/* Section headers */
+.del-btn{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;padding:4px}
+.del-btn:active{color:var(--danger)}
 .section-label{font-size:11px;font-family:var(--mono);color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:14px}
-
-/* Stats */
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
 .stat-label{font-size:10px;font-family:var(--mono);color:var(--muted);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px}
@@ -114,7 +71,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 </style>
 </head>
 <body>
-
 <div id="app">
   <div id="header">
     <div class="header-row">
@@ -122,264 +78,282 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
       <span class="total-pill" id="totalPill">$0</span>
     </div>
   </div>
-
   <div id="content">
-    <!-- VIEW: NUEVO GASTO -->
     <div class="view active" id="view-nuevo">
       <div class="field">
-        <label>Categoría</label>
-        <select id="fCat" onchange="onCatChange()">
-          <option value="">Seleccionar...</option>
-        </select>
+        <label>Categoria</label>
+        <select id="fCat"><option value="">Seleccionar...</option></select>
       </div>
       <div class="field">
-        <label>Subcategoría</label>
-        <select id="fSub">
-          <option value="">Seleccionar...</option>
-        </select>
+        <label>Subcategoria</label>
+        <select id="fSub"><option value="">Seleccionar...</option></select>
       </div>
       <div class="row2">
-        <div class="field">
-          <label>Fecha</label>
-          <input type="date" id="fFecha">
-        </div>
-        <div class="field">
-          <label>Monto ($)</label>
-          <input type="number" id="fMonto" placeholder="0" inputmode="numeric">
-        </div>
+        <div class="field"><label>Fecha</label><input type="date" id="fFecha"></div>
+        <div class="field"><label>Monto ($)</label><input type="number" id="fMonto" placeholder="0" inputmode="numeric"></div>
       </div>
-      <div class="field">
-        <label>Medio de pago</label>
-        <div class="chips" id="chips"></div>
-      </div>
-      <div class="field">
-        <label>Destinatario</label>
-        <input type="text" id="fDest" placeholder="Lider, Copec, Clínica...">
-      </div>
-      <div class="field">
-        <label>Descripción</label>
-        <input type="text" id="fDesc" placeholder="Detalle del gasto">
-      </div>
-      <div class="field">
-        <label>Vacaciones (opcional)</label>
-        <input type="text" id="fVac" placeholder="Ej: Lago Ranco 2026.01...">
-      </div>
-      <button class="cta" onclick="agregar()">+ Agregar gasto</button>
+      <div class="field"><label>Medio de pago</label><div class="chips" id="chips"></div></div>
+      <div class="field"><label>Destinatario</label><input type="text" id="fDest" placeholder="Lider, Copec, Clinica..."></div>
+      <div class="field"><label>Descripcion</label><input type="text" id="fDesc" placeholder="Detalle del gasto"></div>
+      <div class="field"><label>Vacaciones (opcional)</label><input type="text" id="fVac" placeholder="Ej: Lago Ranco 2026.01..."></div>
+      <button class="cta" id="btnAgregar">+ Agregar gasto</button>
     </div>
-
-    <!-- VIEW: LISTA -->
     <div class="view" id="view-lista">
       <div class="section-label" id="listaLabel">Gastos registrados</div>
       <div id="listaGastos"></div>
-      <div id="listaVacia" class="empty" style="display:none">
-        <div class="empty-icon">📋</div>
-        <div>Aún no hay gastos registrados</div>
-      </div>
-      <button class="cta" onclick="exportar()" id="btnExportar" style="display:none">Descargar Excel</button>
-      <button class="cta secondary" onclick="if(confirm('¿Eliminar todos los gastos?')){gastos=[];save();render();}" id="btnClear" style="display:none">Limpiar todo</button>
+      <div id="listaVacia" class="empty" style="display:none"><div class="empty-icon">-</div><div>Sin gastos registrados</div></div>
+      <button class="cta" id="btnExportar" style="display:none">Descargar Excel</button>
+      <button class="cta secondary" id="btnClear" style="display:none">Limpiar todo</button>
     </div>
-
-    <!-- VIEW: RESUMEN -->
     <div class="view" id="view-resumen">
       <div class="section-label">Resumen</div>
       <div class="stat-grid" id="statGrid"></div>
-      <div class="section-label">Por categoría</div>
+      <div class="section-label">Por categoria</div>
       <div id="catBars"></div>
     </div>
   </div>
-
   <nav id="nav">
-    <button class="nav-btn active" id="nav-nuevo" onclick="goTo('nuevo')">
+    <button class="nav-btn active" id="nav-nuevo">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
       Nuevo
     </button>
-    <button class="nav-btn" id="nav-lista" onclick="goTo('lista')">
+    <button class="nav-btn" id="nav-lista">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="13" x2="17" y2="13"/><line x1="7" y1="17" x2="13" y2="17"/></svg>
       Lista
     </button>
-    <button class="nav-btn" id="nav-resumen" onclick="goTo('resumen')">
+    <button class="nav-btn" id="nav-resumen">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       Resumen
     </button>
   </nav>
 </div>
-
 <div id="toast"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const CATS = {"Gastos Casa":["Arriendo","Beneficencia","Equipamiento","Mantenciones y Reparaciones Casa","Proyectos y Mejoras Casa","Otros Gastos Casa","Regalos Casa","Servicios Básicos","Transporte"],"Supermercado":["Compra Semanal","Frutas y Verduras","Otras Compras Supermercado"],"Entretenimiento":["Comidas Casa","Diversiones Casa","Reunioens Familiares","Reuniones con Amigos","Salidas a Comer"],"Servicios Doméstico":["Aseo Profundo","Gastos Adicionales Nanas","Mantención Jardín y Piscina","Nana Principal","Otros Gastos Servicio Doméstico"],"Bencina":["Bencina"],"Salud":["Consultas Médicas","Dentista Niños","Exámenes y Procedimientos","Farmacia","Otros Gastos Farmacia","Otros Gastos Salud Casa"],"Gastos Niños":["Actividades Niños","Diversiones Niños","Otros Gastos Niños","Regalos Niños","Ropa Niños"],"Educación Niños":["Colegiaturas y Matrículas","Otros Gastos Educación","Uniformes y Útiles"],"Autos":["Mantenciones Autos","Reparaciones Autos","Otros Gastos Autos","Permisos de Circulación","Repuestos Autos"],"Seguros":["Seguros Autos","Seguros de Salud","Seguros de Vida"],"Gastos CG":["Almuerzos CG","Casino","Comidas CG","Cuidado Personal CG","Diversiones CG","Gastos Financieros","Gimnasio CG","Otros Gastos CG","Regalos CG","Ropa CG","Salidas con Amigos CG","Sicóloga CG"],"Vacaciones":["FDS - Alojamiento","FDS - Comidas","FDS - Otros Gastos","FDS - Supermercado","FDS - Transporte","Vacaciones - Alojamiento","Vacaciones - Bencina","Vacaciones - Comidas","Vacaciones - Diversiones","Vacaciones - Otros Gastos","Vacaciones - Supermercado","Vacaciones - Transporte"],"Suscripciones":["Suscripciones"]};
-const MEDIOS = ["CMR","BICE Infinite","PAT BICE Infinite","Cencosud Scotiabank","TE CC Edwards","Infinite Edwards","BCI Lider","Cargo CC Edwards","Worldmember ML","Worldmember","Efectivo","CMR ML"];
+var CATS = {
+  "Gastos Casa":["Arriendo","Beneficencia","Equipamiento","Mantenciones y Reparaciones Casa","Proyectos y Mejoras Casa","Otros Gastos Casa","Regalos Casa","Servicios Basicos","Transporte"],
+  "Supermercado":["Compra Semanal","Frutas y Verduras","Otras Compras Supermercado"],
+  "Entretenimiento":["Comidas Casa","Diversiones Casa","Reuniones Familiares","Reuniones con Amigos","Salidas a Comer"],
+  "Servicios Domestico":["Aseo Profundo","Gastos Adicionales Nanas","Mantencion Jardin y Piscina","Nana Principal","Otros Gastos Servicio Domestico"],
+  "Bencina":["Bencina"],
+  "Salud":["Consultas Medicas","Dentista Ninos","Examenes y Procedimientos","Farmacia","Otros Gastos Farmacia","Otros Gastos Salud Casa"],
+  "Gastos Ninos":["Actividades Ninos","Diversiones Ninos","Otros Gastos Ninos","Regalos Ninos","Ropa Ninos"],
+  "Educacion Ninos":["Colegiaturas y Matriculas","Otros Gastos Educacion","Uniformes y Utiles"],
+  "Autos":["Mantenciones Autos","Reparaciones Autos","Otros Gastos Autos","Permisos de Circulacion","Repuestos Autos"],
+  "Seguros":["Seguros Autos","Seguros de Salud","Seguros de Vida"],
+  "Gastos CG":["Almuerzos CG","Casino","Comidas CG","Cuidado Personal CG","Diversiones CG","Gastos Financieros","Gimnasio CG","Otros Gastos CG","Regalos CG","Ropa CG","Salidas con Amigos CG","Sicologa CG"],
+  "Vacaciones":["FDS - Alojamiento","FDS - Comidas","FDS - Otros Gastos","FDS - Supermercado","FDS - Transporte","Vacaciones - Alojamiento","Vacaciones - Bencina","Vacaciones - Comidas","Vacaciones - Diversiones","Vacaciones - Otros Gastos","Vacaciones - Supermercado","Vacaciones - Transporte"],
+  "Suscripciones":["Suscripciones"]
+};
+var MEDIOS = ["CMR","BICE Infinite","PAT BICE Infinite","Cencosud Scotiabank","TE CC Edwards","Infinite Edwards","BCI Lider","Cargo CC Edwards","Worldmember ML","Worldmember","Efectivo","CMR ML"];
 
-let gastos = JSON.parse(localStorage.getItem('gastos')||'[]');
-let medioSel = '';
-let currentView = 'nuevo';
-let selCat, selSub;
+var gastos = [];
+try { gastos = JSON.parse(localStorage.getItem('gastos') || '[]') || []; } catch(e) {}
+var medioSel = '';
 
-function onCatChange(){
-  const cat=selCat.value;
-  selSub.innerHTML='<option value="">Seleccionar...</option>';
-  if(cat&&CATS[cat]) CATS[cat].forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;selSub.appendChild(o);});
+// Poblar categorias
+var elCat = document.getElementById('fCat');
+var elSub = document.getElementById('fSub');
+var keys = Object.keys(CATS);
+for (var i = 0; i < keys.length; i++) {
+  var o = document.createElement('option');
+  o.value = keys[i];
+  o.textContent = keys[i];
+  elCat.appendChild(o);
 }
 
-document.addEventListener('DOMContentLoaded', function(){
-  // Init selects
-  selCat = document.getElementById('fCat');
-  selSub = document.getElementById('fSub');
-  Object.keys(CATS).forEach(c=>{
-    const o=document.createElement('option');o.value=c;o.textContent=c;selCat.appendChild(o);
-  });
-  selCat.addEventListener('change', onCatChange);
+// Cambio categoria
+elCat.onchange = function() {
+  var cat = elCat.value;
+  elSub.innerHTML = '<option value="">Seleccionar...</option>';
+  if (cat && CATS[cat]) {
+    var subs = CATS[cat];
+    for (var j = 0; j < subs.length; j++) {
+      var o2 = document.createElement('option');
+      o2.value = subs[j];
+      o2.textContent = subs[j];
+      elSub.appendChild(o2);
+    }
+  }
+};
 
-  // Chips
-  const chipsDiv=document.getElementById('chips');
-  MEDIOS.forEach(m=>{
-    const c=document.createElement('span');
-    c.className='chip';c.textContent=m;
-    c.onclick=()=>{
-      medioSel=medioSel===m?'':m;
-      document.querySelectorAll('.chip').forEach(x=>x.classList.remove('sel'));
-      if(medioSel) c.classList.add('sel');
+// Chips
+var chipsDiv = document.getElementById('chips');
+for (var k = 0; k < MEDIOS.length; k++) {
+  (function(m) {
+    var c = document.createElement('span');
+    c.className = 'chip';
+    c.textContent = m;
+    c.onclick = function() {
+      medioSel = (medioSel === m) ? '' : m;
+      var all = document.querySelectorAll('.chip');
+      for (var x = 0; x < all.length; x++) all[x].classList.remove('sel');
+      if (medioSel) c.classList.add('sel');
     };
     chipsDiv.appendChild(c);
-  });
-
-  // Date default
-  document.getElementById('fFecha').value=new Date().toISOString().slice(0,10);
-  updateTotal();
-});
-
-// Nav
-function goTo(v){
-  currentView=v;
-  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
-  document.getElementById('view-'+v).classList.add('active');
-  document.querySelectorAll('.nav-btn').forEach(x=>x.classList.remove('active'));
-  document.getElementById('nav-'+v).classList.add('active');
-  if(v==='lista') render();
-  if(v==='resumen') renderResumen();
+  })(MEDIOS[k]);
 }
 
+// Fecha hoy
+document.getElementById('fFecha').value = new Date().toISOString().slice(0, 10);
+
+// Nav
+function goTo(v) {
+  var views = document.querySelectorAll('.view');
+  for (var i = 0; i < views.length; i++) views[i].classList.remove('active');
+  document.getElementById('view-' + v).classList.add('active');
+  var btns = document.querySelectorAll('.nav-btn');
+  for (var j = 0; j < btns.length; j++) btns[j].classList.remove('active');
+  document.getElementById('nav-' + v).classList.add('active');
+  if (v === 'lista') renderLista();
+  if (v === 'resumen') renderResumen();
+}
+document.getElementById('nav-nuevo').onclick = function(){ goTo('nuevo'); };
+document.getElementById('nav-lista').onclick = function(){ goTo('lista'); };
+document.getElementById('nav-resumen').onclick = function(){ goTo('resumen'); };
+
 // Toast
-function toast(msg,type='ok'){
-  const t=document.getElementById('toast');
-  t.textContent=msg;t.className='show '+type;
-  setTimeout(()=>{t.className='';},2500);
+var toastTimer;
+function toast(msg, type) {
+  clearTimeout(toastTimer);
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + (type || 'ok');
+  toastTimer = setTimeout(function(){ el.className = ''; }, 2500);
 }
 
 // Save
-function save(){
-  localStorage.setItem('gastos',JSON.stringify(gastos));
-  updateTotal();
-}
-
-function updateTotal(){
-  const total=gastos.reduce((a,g)=>a+g.Monto,0);
-  document.getElementById('totalPill').textContent='$'+total.toLocaleString('es-CL');
+function save() {
+  try { localStorage.setItem('gastos', JSON.stringify(gastos)); } catch(e) {}
+  var total = 0;
+  for (var i = 0; i < gastos.length; i++) total += gastos[i].Monto;
+  document.getElementById('totalPill').textContent = '$' + total.toLocaleString('es-CL');
 }
 
 // Agregar
-function agregar(){
-  const fecha=document.getElementById('fFecha').value;
-  const monto=document.getElementById('fMonto').value;
-  const cat=selCat.value;
-  const sub=selSub.value;
-  const dest=document.getElementById('fDest').value.trim();
-  const desc=document.getElementById('fDesc').value.trim();
-  const vac=document.getElementById('fVac').value.trim();
-  if(!fecha||!monto||!cat||!sub||!medioSel){toast('Completa fecha, monto, categoría, subcategoría y medio de pago','err');return;}
-  const dateObj=new Date(fecha+'T00:00:00');
-  const excelDate=Math.floor((dateObj-new Date(Date.UTC(1899,11,30)))/86400000);
-  gastos.push({Fecha:excelDate,Monto:Number(monto),"Medio de Pago":medioSel,Subcategoría:sub,Categoría:cat,Destinatario:dest,Descripción:desc,Vacaciones:vac,_fecha:fecha,_dest:dest||sub});
+document.getElementById('btnAgregar').onclick = function() {
+  var fecha = document.getElementById('fFecha').value;
+  var monto = document.getElementById('fMonto').value;
+  var cat   = elCat.value;
+  var sub   = elSub.value;
+  var dest  = document.getElementById('fDest').value.trim();
+  var desc  = document.getElementById('fDesc').value.trim();
+  var vac   = document.getElementById('fVac').value.trim();
+  if (!fecha || !monto || !cat || !sub || !medioSel) {
+    toast('Completa fecha, monto, categoria, subcategoria y medio de pago', 'err');
+    return;
+  }
+  var d = new Date(fecha + 'T00:00:00');
+  var excelDate = Math.floor((d - new Date(Date.UTC(1899,11,30))) / 86400000);
+  gastos.push({ Fecha:excelDate, Monto:Number(monto), MedioPago:medioSel, Sub:sub, Cat:cat, Dest:dest, Desc:desc, Vac:vac, _fecha:fecha, _dest:dest||sub });
   save();
-  document.getElementById('fMonto').value='';
-  document.getElementById('fDest').value='';
-  document.getElementById('fDesc').value='';
-  document.getElementById('fVac').value='';
-  toast('Gasto agregado ✓');
+  document.getElementById('fMonto').value = '';
+  document.getElementById('fDest').value = '';
+  document.getElementById('fDesc').value = '';
+  document.getElementById('fVac').value = '';
+  toast('Gasto agregado!');
+};
+
+// Lista
+function renderLista() {
+  var lista  = document.getElementById('listaGastos');
+  var vacia  = document.getElementById('listaVacia');
+  var btnExp = document.getElementById('btnExportar');
+  var btnClr = document.getElementById('btnClear');
+  var lbl    = document.getElementById('listaLabel');
+  lista.innerHTML = '';
+  if (!gastos.length) {
+    vacia.style.display = '';
+    lista.style.display = 'none';
+    btnExp.style.display = 'none';
+    btnClr.style.display = 'none';
+    return;
+  }
+  vacia.style.display = 'none';
+  lista.style.display = '';
+  btnExp.style.display = '';
+  btnClr.style.display = '';
+  var total = 0;
+  for (var i = 0; i < gastos.length; i++) total += gastos[i].Monto;
+  lbl.textContent = gastos.length + ' gasto' + (gastos.length > 1 ? 's' : '') + ' - $' + total.toLocaleString('es-CL');
+  for (var ri = gastos.length - 1; ri >= 0; ri--) {
+    var g = gastos[ri];
+    var d2 = document.createElement('div');
+    d2.className = 'gasto-item';
+    d2.innerHTML =
+      '<div class="gasto-top"><div class="gasto-dest">' + (g._dest || g.Sub) + '</div><div class="gasto-monto">$' + g.Monto.toLocaleString('es-CL') + '</div></div>' +
+      '<div class="gasto-meta"><span class="gasto-fecha">' + g._fecha + '</span><span class="gasto-sep">-</span><span class="gasto-cat">' + g.Cat + '</span><span class="gasto-sep">-</span><span class="gasto-medio">' + g.MedioPago + '</span></div>' +
+      '<button class="del-btn" data-i="' + ri + '">x</button>';
+    lista.appendChild(d2);
+  }
+  var dels = lista.querySelectorAll('.del-btn');
+  for (var di = 0; di < dels.length; di++) {
+    dels[di].onclick = function() {
+      var idx = parseInt(this.getAttribute('data-i'));
+      if (confirm('Eliminar este gasto?')) { gastos.splice(idx, 1); save(); renderLista(); }
+    };
+  }
 }
 
-// Render lista
-function render(){
-  const lista=document.getElementById('listaGastos');
-  const vacia=document.getElementById('listaVacia');
-  const btnExp=document.getElementById('btnExportar');
-  const btnClr=document.getElementById('btnClear');
-  const lbl=document.getElementById('listaLabel');
-  lista.innerHTML='';
-  if(gastos.length===0){vacia.style.display='';lista.style.display='none';btnExp.style.display='none';btnClr.style.display='none';return;}
-  vacia.style.display='none';lista.style.display='';btnExp.style.display='';btnClr.style.display='';
-  const total=gastos.reduce((a,g)=>a+g.Monto,0);
-  lbl.textContent=gastos.length+' gasto'+(gastos.length>1?'s')+' · $'+total.toLocaleString('es-CL');
-  [...gastos].reverse().forEach((g,ri)=>{
-    const i=gastos.length-1-ri;
-    const d=document.createElement('div');d.className='gasto-item';
-    d.innerHTML=`
-      <div class="gasto-top">
-        <div class="gasto-dest">${g._dest||g.Subcategoría}</div>
-        <div class="gasto-monto">$${g.Monto.toLocaleString('es-CL')}</div>
-      </div>
-      <div class="gasto-meta">
-        <span class="gasto-fecha">${g._fecha}</span>
-        <span class="gasto-sep">·</span>
-        <span class="gasto-cat">${g.Categoría}</span>
-        <span class="gasto-sep">·</span>
-        <span class="gasto-medio">${g["Medio de Pago"]}</span>
-      </div>
-      <button class="del-btn" onclick="eliminar(${i})">×</button>`;
-    lista.appendChild(d);
-  });
-}
-
-function eliminar(i){
-  if(!confirm('¿Eliminar este gasto?'))return;
-  gastos.splice(i,1);save();render();
-}
+document.getElementById('btnExportar').onclick = exportar;
+document.getElementById('btnClear').onclick = function() {
+  if (confirm('Eliminar todos los gastos?')) { gastos = []; save(); renderLista(); }
+};
 
 // Resumen
-function renderResumen(){
-  const total=gastos.reduce((a,g)=>a+g.Monto,0);
-  const sg=document.getElementById('statGrid');
-  sg.innerHTML=`
-    <div class="stat-card"><div class="stat-label">Total</div><div class="stat-val sm">$${total.toLocaleString('es-CL')}</div></div>
-    <div class="stat-card"><div class="stat-label">Registros</div><div class="stat-val">${gastos.length}</div></div>`;
-  const bycat={};
-  gastos.forEach(g=>{bycat[g.Categoría]=(bycat[g.Categoría]||0)+g.Monto;});
-  const sorted=Object.entries(bycat).sort((a,b)=>b[1]-a[1]);
-  const bars=document.getElementById('catBars');
-  bars.innerHTML='';
-  if(!sorted.length){bars.innerHTML='<div class="empty">Sin datos</div>';return;}
-  const max=sorted[0][1];
-  sorted.forEach(([cat,amt])=>{
-    const pct=Math.round(amt/max*100);
-    const d=document.createElement('div');d.className='cat-bar';
-    d.innerHTML=`<div class="cat-bar-label"><span>${cat}</span><span>$${amt.toLocaleString('es-CL')}</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>`;
-    bars.appendChild(d);
-  });
-}
-
-// Export
-function exportar(){
-  if(!gastos.length){toast('No hay gastos para exportar','err');return;}
-  const rows=gastos.map(g=>({Fecha:g.Fecha,Monto:g.Monto,"Medio de Pago":g["Medio de Pago"],Subcategoría:g.Subcategoría,Categoría:g.Categoría,Destinatario:g.Destinatario,Descripción:g.Descripción,Vacaciones:g.Vacaciones}));
-  const ws=XLSX.utils.json_to_sheet(rows,{header:['Fecha','Monto','Medio de Pago','Subcategoría','Categoría','Destinatario','Descripción','Vacaciones']});
-  ws['!cols']=[{wch:12},{wch:12},{wch:18},{wch:28},{wch:18},{wch:24},{wch:40},{wch:30}];
-  const range=XLSX.utils.decode_range(ws['!ref']);
-  for(let r=1;r<=range.e.r;r++){
-    const cell=ws[XLSX.utils.encode_cell({r,c:0})];
-    if(cell){cell.t='n';cell.z='DD/MM/YYYY';}
+function renderResumen() {
+  var total = 0;
+  for (var i = 0; i < gastos.length; i++) total += gastos[i].Monto;
+  document.getElementById('statGrid').innerHTML =
+    '<div class="stat-card"><div class="stat-label">Total</div><div class="stat-val sm">$' + total.toLocaleString('es-CL') + '</div></div>' +
+    '<div class="stat-card"><div class="stat-label">Registros</div><div class="stat-val">' + gastos.length + '</div></div>';
+  var bycat = {};
+  for (var j = 0; j < gastos.length; j++) { var c2 = gastos[j].Cat; bycat[c2] = (bycat[c2] || 0) + gastos[j].Monto; }
+  var sorted = [];
+  for (var key in bycat) sorted.push([key, bycat[key]]);
+  sorted.sort(function(a, b){ return b[1] - a[1]; });
+  var bars = document.getElementById('catBars');
+  bars.innerHTML = '';
+  if (!sorted.length) { bars.innerHTML = '<div class="empty">Sin datos</div>'; return; }
+  var max = sorted[0][1];
+  for (var s = 0; s < sorted.length; s++) {
+    var pct = Math.round(sorted[s][1] / max * 100);
+    var bd = document.createElement('div');
+    bd.className = 'cat-bar';
+    bd.innerHTML = '<div class="cat-bar-label"><span>' + sorted[s][0] + '</span><span>$' + sorted[s][1].toLocaleString('es-CL') + '</span></div><div class="bar-track"><div class="bar-fill" style="width:' + pct + '%"></div></div>';
+    bars.appendChild(bd);
   }
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'Gastos');
-  XLSX.writeFile(wb,'Gastos_'+new Date().toISOString().slice(0,10)+'.xlsx');
-  toast('Excel descargado ✓');
 }
 
-// Service worker - forzar actualización de caché
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js').then(reg=>{
-    reg.update();
-  });
+// Exportar
+function exportar() {
+  if (!gastos.length) { toast('Sin gastos para exportar', 'err'); return; }
+  if (typeof XLSX === 'undefined') { toast('Cargando, intenta de nuevo', 'err'); return; }
+  var rows = [];
+  for (var i = 0; i < gastos.length; i++) {
+    var g = gastos[i];
+    rows.push({ Fecha:g.Fecha, Monto:g.Monto, "Medio de Pago":g.MedioPago, "Subcategoria":g.Sub, "Categoria":g.Cat, Destinatario:g.Dest, "Descripcion":g.Desc, Vacaciones:g.Vac });
+  }
+  var ws = XLSX.utils.json_to_sheet(rows, {header:['Fecha','Monto','Medio de Pago','Subcategoria','Categoria','Destinatario','Descripcion','Vacaciones']});
+  ws['!cols'] = [{wch:12},{wch:12},{wch:18},{wch:28},{wch:18},{wch:24},{wch:40},{wch:30}];
+  var range = XLSX.utils.decode_range(ws['!ref']);
+  for (var r = 1; r <= range.e.r; r++) {
+    var cell = ws[XLSX.utils.encode_cell({r:r,c:0})];
+    if (cell) { cell.t = 'n'; cell.z = 'DD/MM/YYYY'; }
+  }
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Gastos');
+  XLSX.writeFile(wb, 'Gastos_' + new Date().toISOString().slice(0,10) + '.xlsx');
+  toast('Excel descargado!');
 }
+
+// SW
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').then(function(r){ r.update(); }).catch(function(){});
+}
+
+save();
 </script>
 </body>
 </html>
