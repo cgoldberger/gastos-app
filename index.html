@@ -56,6 +56,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 .gasto-medio{font-size:10px;background:var(--surface2);color:var(--muted);padding:2px 7px;border-radius:10px;font-family:var(--mono)}
 .del-btn{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;padding:4px}
 .del-btn:active{color:var(--danger)}
+.edit-btn{position:absolute;top:10px;right:36px;background:none;border:none;color:var(--muted);font-size:15px;line-height:1;cursor:pointer;padding:4px}
+.edit-btn:active{color:var(--accent)}
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:200;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg);border-radius:20px 20px 0 0;padding:24px 20px 32px;width:100%;max-height:90vh;overflow-y:auto}
+.modal-title{font-family:var(--mono);font-size:13px;color:var(--accent);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:18px}
+.modal-chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}
 .section-label{font-size:11px;font-family:var(--mono);color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:14px}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
 .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px}
@@ -126,6 +133,23 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
       Resumen
     </button>
   </nav>
+</div>
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-title">Editar gasto</div>
+    <div class="field"><label>Categoria</label><select id="eCat"></select></div>
+    <div class="field"><label>Subcategoria</label><select id="eSub"></select></div>
+    <div class="row2">
+      <div class="field"><label>Fecha</label><input type="date" id="eFecha"></div>
+      <div class="field"><label>Monto ($)</label><input type="number" id="eMonto" inputmode="numeric"></div>
+    </div>
+    <div class="field"><label>Medio de pago</label><div class="modal-chips" id="eChips"></div></div>
+    <div class="field"><label>Destinatario</label><input type="text" id="eDest"></div>
+    <div class="field"><label>Descripcion</label><input type="text" id="eDesc"></div>
+    <div class="field"><label>Vacaciones</label><input type="text" id="eVac"></div>
+    <button class="cta" id="btnGuardar">Guardar cambios</button>
+    <button class="cta secondary" id="btnCancelar">Cancelar</button>
+  </div>
 </div>
 <div id="toast"></div>
 
@@ -284,7 +308,7 @@ function renderLista() {
     d2.innerHTML =
       '<div class="gasto-top"><div class="gasto-dest">' + (g._dest || g.Sub) + '</div><div class="gasto-monto">$' + g.Monto.toLocaleString('es-CL') + '</div></div>' +
       '<div class="gasto-meta"><span class="gasto-fecha">' + g._fecha + '</span><span class="gasto-sep">-</span><span class="gasto-cat">' + g.Cat + '</span><span class="gasto-sep">-</span><span class="gasto-medio">' + g.MedioPago + '</span></div>' +
-      '<button class="del-btn" data-i="' + ri + '">x</button>';
+      '<button class="edit-btn" data-i="' + ri + '">✎</button>' +'<button class="del-btn" data-i="' + ri + '">x</button>';
     lista.appendChild(d2);
   }
   var dels = lista.querySelectorAll('.del-btn');
@@ -292,6 +316,12 @@ function renderLista() {
     dels[di].onclick = function() {
       var idx = parseInt(this.getAttribute('data-i'));
       if (confirm('Eliminar este gasto?')) { gastos.splice(idx, 1); save(); renderLista(); }
+    };
+  }
+  var edits = lista.querySelectorAll('.edit-btn');
+  for (var ei = 0; ei < edits.length; ei++) {
+    edits[ei].onclick = function() {
+      openEdit(parseInt(this.getAttribute('data-i')));
     };
   }
 }
@@ -347,6 +377,94 @@ function exportar() {
   XLSX.writeFile(wb, 'Gastos_' + new Date().toISOString().slice(0,10) + '.xlsx');
   toast('Excel descargado!');
 }
+
+// --- Edit modal ---
+var editIdx = -1;
+var eMedioSel = '';
+
+// Populate eCat
+var elECat = document.getElementById('eCat');
+var elESub = document.getElementById('eSub');
+var ekeys = Object.keys(CATS);
+for (var ei2 = 0; ei2 < ekeys.length; ei2++) {
+  var eo = document.createElement('option');
+  eo.value = ekeys[ei2]; eo.textContent = ekeys[ei2];
+  elECat.appendChild(eo);
+}
+elECat.onchange = function() {
+  var cat = elECat.value;
+  elESub.innerHTML = '<option value="">Seleccionar...</option>';
+  if (cat && CATS[cat]) {
+    for (var j2 = 0; j2 < CATS[cat].length; j2++) {
+      var eo2 = document.createElement('option'); eo2.value = CATS[cat][j2]; eo2.textContent = CATS[cat][j2]; elESub.appendChild(eo2);
+    }
+  }
+};
+
+// Populate eChips
+var eChipsDiv = document.getElementById('eChips');
+for (var ek = 0; ek < MEDIOS.length; ek++) {
+  (function(m) {
+    var ec = document.createElement('span');
+    ec.className = 'chip'; ec.textContent = m;
+    ec.onclick = function() {
+      eMedioSel = (eMedioSel === m) ? '' : m;
+      var all = eChipsDiv.querySelectorAll('.chip');
+      for (var x = 0; x < all.length; x++) all[x].classList.remove('sel');
+      if (eMedioSel) ec.classList.add('sel');
+    };
+    eChipsDiv.appendChild(ec);
+  })(MEDIOS[ek]);
+}
+
+function openEdit(idx) {
+  editIdx = idx;
+  var g = gastos[idx];
+  // Set cat
+  elECat.value = g.Cat;
+  elECat.onchange();
+  elESub.value = g.Sub;
+  document.getElementById('eFecha').value = g._fecha;
+  document.getElementById('eMonto').value = g.Monto;
+  document.getElementById('eDest').value = g.Dest || '';
+  document.getElementById('eDesc').value = g.Desc || '';
+  document.getElementById('eVac').value = g.Vac || '';
+  // Set medio
+  eMedioSel = g.MedioPago;
+  var all = eChipsDiv.querySelectorAll('.chip');
+  for (var x = 0; x < all.length; x++) {
+    all[x].classList.remove('sel');
+    if (all[x].textContent === eMedioSel) all[x].classList.add('sel');
+  }
+  document.getElementById('editModal').classList.add('open');
+}
+
+document.getElementById('btnCancelar').onclick = function() {
+  document.getElementById('editModal').classList.remove('open');
+};
+document.getElementById('editModal').onclick = function(e) {
+  if (e.target === this) this.classList.remove('open');
+};
+
+document.getElementById('btnGuardar').onclick = function() {
+  var fecha = document.getElementById('eFecha').value;
+  var monto = document.getElementById('eMonto').value;
+  var cat   = elECat.value;
+  var sub   = elESub.value;
+  var dest  = document.getElementById('eDest').value.trim();
+  var desc  = document.getElementById('eDesc').value.trim();
+  var vac   = document.getElementById('eVac').value.trim();
+  if (!fecha || !monto || !cat || !sub || !eMedioSel) {
+    toast('Completa todos los campos obligatorios', 'err'); return;
+  }
+  var d = new Date(fecha + 'T00:00:00');
+  var excelDate = Math.floor((d - new Date(Date.UTC(1899,11,30))) / 86400000);
+  gastos[editIdx] = { Fecha:excelDate, Monto:Number(monto), MedioPago:eMedioSel, Sub:sub, Cat:cat, Dest:dest, Desc:desc, Vac:vac, _fecha:fecha, _dest:dest||sub };
+  save();
+  document.getElementById('editModal').classList.remove('open');
+  renderLista();
+  toast('Gasto actualizado!');
+};
 
 // SW
 if ('serviceWorker' in navigator) {
