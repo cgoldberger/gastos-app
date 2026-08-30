@@ -388,7 +388,6 @@ function exportar() {
   var wb = new ExcelJS.Workbook();
   var ws = wb.addWorksheet('Gastos');
 
-  // Anchos de columna (A=1.66, B=10.83, C=14.83, D=20.66, E=30.33, F=25, G=35.66, H=68.16, I=39.33)
   ws.columns = [
     {width:1.66},
     {width:10.83},
@@ -401,52 +400,36 @@ function exportar() {
     {width:39.33}
   ];
 
-  // Fila 1 vacía (igual al original)
+  // Fila 1 vacía
   ws.addRow([]);
 
   // Fila 2: encabezados
-  var hdrRow = ws.addRow(['', 'Fecha', 'Monto', 'Medio de Pago', 'Subcategoría', 'Categoría', 'Destinatario', 'Descripción', 'Vacaciones']);
-  hdrRow.eachCell(function(cell) {
-    if (cell.col < 2) return;
-    cell.font = {name:'Calibri', size:11, bold:true, color:{argb:'FFFFFFFF'}};
-    cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:'FF4472C4'}};
-    cell.alignment = {horizontal:'center', vertical:'middle'};
-    cell.border = {
-      top:{style:'thin',color:{argb:'FFD9E1F2'}},
-      bottom:{style:'thin',color:{argb:'FFD9E1F2'}},
-      left:{style:'thin',color:{argb:'FFD9E1F2'}},
-      right:{style:'thin',color:{argb:'FFD9E1F2'}}
-    };
-  });
+  var hdrs = ['', 'Fecha', 'Monto', 'Medio de Pago', 'Subcategoría', 'Categoría', 'Destinatario', 'Descripción', 'Vacaciones'];
+  var hdrRow = ws.addRow(hdrs);
+  for (var hc = 2; hc <= 9; hc++) {
+    var hCell = hdrRow.getCell(hc);
+    hCell.font = {name:'Calibri', size:11, bold:true, color:{argb:'FFFFFFFF'}};
+    hCell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:'FF4472C4'}};
+    hCell.alignment = {horizontal:'center', vertical:'middle'};
+  }
 
   // Filas de datos
   for (var i = 0; i < gastos.length; i++) {
     var g = gastos[i];
-    // Fecha: convertir serial Excel a Date
     var fechaDate = new Date(Date.UTC(1899,11,30) + g.Fecha * 86400000);
-    var dataRow = ws.addRow(['', fechaDate, g.Monto, g.MedioPago||'', g.Sub||'', g.Cat||'', g.Dest||'', g.Desc||'', g.Vac||'']);
-    // Fecha: formato D-MMM-YY, centrado
-    var fechaCell = dataRow.getCell(2);
-    fechaCell.numFmt = 'D-MMM-YY';
-    fechaCell.alignment = {horizontal:'center'};
-    // Monto: formato #,##0, alineado derecha
-    var montoCell = dataRow.getCell(3);
-    montoCell.numFmt = '#,##0';
-    montoCell.alignment = {horizontal:'right'};
-    // Resto: alineado izquierda
-    for (var col = 4; col <= 9; col++) {
-      dataRow.getCell(col).alignment = {horizontal:'left'};
+    var dr = ws.addRow(['', fechaDate, g.Monto, g.MedioPago||'', g.Sub||'', g.Cat||'', g.Dest||'', g.Desc||'', g.Vac||'']);
+    for (var dc = 2; dc <= 9; dc++) {
+      dr.getCell(dc).font = {name:'Calibri', size:11};
     }
-    // Fuente Calibri 11 para todas
-    dataRow.eachCell(function(cell) {
-      cell.font = {name:'Calibri', size:11};
-    });
+    dr.getCell(2).numFmt = 'D-MMM-YY';
+    dr.getCell(2).alignment = {horizontal:'center'};
+    dr.getCell(3).numFmt = '#,##0';
+    dr.getCell(3).alignment = {horizontal:'right'};
   }
 
-  // Autofilter en B2:I2
-  ws.autoFilter = { from: {row:2, column:2}, to: {row:2, column:9} };
+  // Autofilter B2:I2
+  ws.autoFilter = {from:{row:2,column:2}, to:{row:2,column:9}};
 
-  // Generar y descargar
   wb.xlsx.writeBuffer().then(function(buffer) {
     var blob = new Blob([buffer], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
     saveAs(blob, 'Gastos_nuevos_' + new Date().toISOString().slice(0,10) + '.xlsx');
