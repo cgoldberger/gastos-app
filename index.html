@@ -88,12 +88,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
   <div id="content">
     <div class="view active" id="view-nuevo">
       <div class="field">
-        <label>Categoria</label>
-        <select id="fCat"><option value="">Seleccionar...</option></select>
-      </div>
-      <div class="field">
         <label>Subcategoria</label>
         <select id="fSub"><option value="">Seleccionar...</option></select>
+      </div>
+      <div class="field">
+        <label>Categoria (autocompletada)</label>
+        <input type="text" id="fCat" readonly placeholder="Se completa al elegir subcategoria" style="color:var(--muted);background:var(--surface2)">
       </div>
       <div class="row2">
         <div class="field"><label>Fecha</label><input type="date" id="fFecha"></div>
@@ -137,8 +137,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 <div class="modal-overlay" id="editModal">
   <div class="modal">
     <div class="modal-title">Editar gasto</div>
-    <div class="field"><label>Categoria</label><select id="eCat"></select></div>
     <div class="field"><label>Subcategoria</label><select id="eSub"></select></div>
+    <div class="field"><label>Categoria (autocompletada)</label><input type="text" id="eCat" readonly style="color:var(--muted);background:var(--surface2)"></div>
     <div class="row2">
       <div class="field"><label>Fecha</label><input type="date" id="eFecha"></div>
       <div class="field"><label>Monto ($)</label><input type="number" id="eMonto" inputmode="numeric"></div>
@@ -176,30 +176,36 @@ var gastos = [];
 try { gastos = JSON.parse(localStorage.getItem('gastos') || '[]') || []; } catch(e) {}
 var medioSel = '';
 
-// Poblar categorias
-var elCat = document.getElementById('fCat');
-var elSub = document.getElementById('fSub');
-var keys = Object.keys(CATS);
-for (var i = 0; i < keys.length; i++) {
-  var o = document.createElement('option');
-  o.value = keys[i];
-  o.textContent = keys[i];
-  elCat.appendChild(o);
+// Mapa subcategoria -> categoria
+var SUB_TO_CAT = {};
+var catKeys = Object.keys(CATS);
+for (var ci = 0; ci < catKeys.length; ci++) {
+  var subs = CATS[catKeys[ci]];
+  for (var si = 0; si < subs.length; si++) {
+    SUB_TO_CAT[subs[si]] = catKeys[ci];
+  }
 }
 
-// Cambio categoria
-elCat.onchange = function() {
-  var cat = elCat.value;
-  elSub.innerHTML = '<option value="">Seleccionar...</option>';
-  if (cat && CATS[cat]) {
-    var subs = CATS[cat];
-    for (var j = 0; j < subs.length; j++) {
-      var o2 = document.createElement('option');
-      o2.value = subs[j];
-      o2.textContent = subs[j];
-      elSub.appendChild(o2);
-    }
+// Poblar subcategorias agrupadas por categoria
+var elCat = document.getElementById('fCat');
+var elSub = document.getElementById('fSub');
+for (var gi = 0; gi < catKeys.length; gi++) {
+  var grp = document.createElement('optgroup');
+  grp.label = catKeys[gi];
+  var gsubs = CATS[catKeys[gi]];
+  for (var gsi = 0; gsi < gsubs.length; gsi++) {
+    var go = document.createElement('option');
+    go.value = gsubs[gsi];
+    go.textContent = gsubs[gsi];
+    grp.appendChild(go);
   }
+  elSub.appendChild(grp);
+}
+
+// Al elegir subcategoria, autocompletar categoria
+elSub.onchange = function() {
+  var sub = elSub.value;
+  elCat.value = sub ? (SUB_TO_CAT[sub] || '') : '';
 };
 
 // Chips
@@ -382,23 +388,23 @@ function exportar() {
 var editIdx = -1;
 var eMedioSel = '';
 
-// Populate eCat
+// Populate eSub grouped + eCat readonly
 var elECat = document.getElementById('eCat');
 var elESub = document.getElementById('eSub');
 var ekeys = Object.keys(CATS);
 for (var ei2 = 0; ei2 < ekeys.length; ei2++) {
-  var eo = document.createElement('option');
-  eo.value = ekeys[ei2]; eo.textContent = ekeys[ei2];
-  elECat.appendChild(eo);
-}
-elECat.onchange = function() {
-  var cat = elECat.value;
-  elESub.innerHTML = '<option value="">Seleccionar...</option>';
-  if (cat && CATS[cat]) {
-    for (var j2 = 0; j2 < CATS[cat].length; j2++) {
-      var eo2 = document.createElement('option'); eo2.value = CATS[cat][j2]; eo2.textContent = CATS[cat][j2]; elESub.appendChild(eo2);
-    }
+  var egrp = document.createElement('optgroup');
+  egrp.label = ekeys[ei2];
+  var esubs = CATS[ekeys[ei2]];
+  for (var esi = 0; esi < esubs.length; esi++) {
+    var eo = document.createElement('option');
+    eo.value = esubs[esi]; eo.textContent = esubs[esi];
+    egrp.appendChild(eo);
   }
+  elESub.appendChild(egrp);
+}
+elESub.onchange = function() {
+  elECat.value = elESub.value ? (SUB_TO_CAT[elESub.value] || '') : '';
 };
 
 // Populate eChips
@@ -420,10 +426,9 @@ for (var ek = 0; ek < MEDIOS.length; ek++) {
 function openEdit(idx) {
   editIdx = idx;
   var g = gastos[idx];
-  // Set cat
-  elECat.value = g.Cat;
-  elECat.onchange();
+  // Set sub then auto-fill cat
   elESub.value = g.Sub;
+  elECat.value = g.Cat;
   document.getElementById('eFecha').value = g._fecha;
   document.getElementById('eMonto').value = g.Monto;
   document.getElementById('eDest').value = g.Dest || '';
