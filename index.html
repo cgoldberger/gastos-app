@@ -99,7 +99,13 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
         <div class="field"><label>Fecha</label><input type="date" id="fFecha"></div>
         <div class="field"><label>Monto ($)</label><input type="number" id="fMonto" placeholder="0" inputmode="numeric"></div>
       </div>
-      <div class="field"><label>Medio de pago</label><div class="chips" id="chips"></div></div>
+      <div class="field">
+        <label>Medio de pago</label>
+        <select id="fMedioSel">
+          <option value="">Seleccionar...</option>
+        </select>
+        <input type="text" id="fMedioOtro" placeholder="Especifica el medio de pago" style="margin-top:8px;display:none">
+      </div>
       <div class="field"><label>Destinatario</label><input type="text" id="fDest" placeholder="Lider, Copec, Clinica..."></div>
       <div class="field"><label>Descripcion</label><input type="text" id="fDesc" placeholder="Detalle del gasto"></div>
       <div class="field"><label>Vacaciones (opcional)</label><input type="text" id="fVac" placeholder="Ej: Lago Ranco 2026.01..."></div>
@@ -143,7 +149,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
       <div class="field"><label>Fecha</label><input type="date" id="eFecha"></div>
       <div class="field"><label>Monto ($)</label><input type="number" id="eMonto" inputmode="numeric"></div>
     </div>
-    <div class="field"><label>Medio de pago</label><div class="modal-chips" id="eChips"></div></div>
+    <div class="field">
+        <label>Medio de pago</label>
+        <select id="eMedioSel"></select>
+        <input type="text" id="eMedioOtro" placeholder="Especifica el medio de pago" style="margin-top:8px;display:none">
+      </div>
     <div class="field"><label>Destinatario</label><input type="text" id="eDest"></div>
     <div class="field"><label>Descripcion</label><input type="text" id="eDesc"></div>
     <div class="field"><label>Vacaciones</label><input type="text" id="eVac"></div>
@@ -208,22 +218,29 @@ elSub.onchange = function() {
   elCat.value = sub ? (SUB_TO_CAT[sub] || '') : '';
 };
 
-// Chips
-var chipsDiv = document.getElementById('chips');
+// Poblar select medio de pago (form)
+var elMedioSel = document.getElementById('fMedioSel');
+var elMedioOtro = document.getElementById('fMedioOtro');
 for (var k = 0; k < MEDIOS.length; k++) {
-  (function(m) {
-    var c = document.createElement('span');
-    c.className = 'chip';
-    c.textContent = m;
-    c.onclick = function() {
-      medioSel = (medioSel === m) ? '' : m;
-      var all = document.querySelectorAll('.chip');
-      for (var x = 0; x < all.length; x++) all[x].classList.remove('sel');
-      if (medioSel) c.classList.add('sel');
-    };
-    chipsDiv.appendChild(c);
-  })(MEDIOS[k]);
+  var mo = document.createElement('option');
+  mo.value = MEDIOS[k]; mo.textContent = MEDIOS[k];
+  elMedioSel.appendChild(mo);
 }
+var moOtro = document.createElement('option');
+moOtro.value = '__otro__'; moOtro.textContent = 'Otro...';
+elMedioSel.appendChild(moOtro);
+elMedioSel.onchange = function() {
+  if (elMedioSel.value === '__otro__') {
+    elMedioOtro.style.display = '';
+    elMedioOtro.focus();
+    medioSel = '';
+  } else {
+    elMedioOtro.style.display = 'none';
+    elMedioOtro.value = '';
+    medioSel = elMedioSel.value;
+  }
+};
+elMedioOtro.oninput = function() { medioSel = elMedioOtro.value.trim(); };
 
 // Fecha hoy
 document.getElementById('fFecha').value = new Date().toISOString().slice(0, 10);
@@ -388,6 +405,30 @@ function exportar() {
 var editIdx = -1;
 var eMedioSel = '';
 
+// Poblar select medio de pago (modal)
+var elEMedioSel = document.getElementById('eMedioSel');
+var elEMedioOtro = document.getElementById('eMedioOtro');
+for (var emi = 0; emi < MEDIOS.length; emi++) {
+  var emo = document.createElement('option');
+  emo.value = MEDIOS[emi]; emo.textContent = MEDIOS[emi];
+  elEMedioSel.appendChild(emo);
+}
+var emoOtro = document.createElement('option');
+emoOtro.value = '__otro__'; emoOtro.textContent = 'Otro...';
+elEMedioSel.appendChild(emoOtro);
+elEMedioSel.onchange = function() {
+  if (elEMedioSel.value === '__otro__') {
+    elEMedioOtro.style.display = '';
+    elEMedioOtro.focus();
+    eMedioSel = '';
+  } else {
+    elEMedioOtro.style.display = 'none';
+    elEMedioOtro.value = '';
+    eMedioSel = elEMedioSel.value;
+  }
+};
+elEMedioOtro.oninput = function() { eMedioSel = elEMedioOtro.value.trim(); };
+
 // Populate eSub grouped + eCat readonly
 var elECat = document.getElementById('eCat');
 var elESub = document.getElementById('eSub');
@@ -407,21 +448,7 @@ elESub.onchange = function() {
   elECat.value = elESub.value ? (SUB_TO_CAT[elESub.value] || '') : '';
 };
 
-// Populate eChips
-var eChipsDiv = document.getElementById('eChips');
-for (var ek = 0; ek < MEDIOS.length; ek++) {
-  (function(m) {
-    var ec = document.createElement('span');
-    ec.className = 'chip'; ec.textContent = m;
-    ec.onclick = function() {
-      eMedioSel = (eMedioSel === m) ? '' : m;
-      var all = eChipsDiv.querySelectorAll('.chip');
-      for (var x = 0; x < all.length; x++) all[x].classList.remove('sel');
-      if (eMedioSel) ec.classList.add('sel');
-    };
-    eChipsDiv.appendChild(ec);
-  })(MEDIOS[ek]);
-}
+// eChips now handled by elEMedioSel select
 
 function openEdit(idx) {
   editIdx = idx;
@@ -436,10 +463,15 @@ function openEdit(idx) {
   document.getElementById('eVac').value = g.Vac || '';
   // Set medio
   eMedioSel = g.MedioPago;
-  var all = eChipsDiv.querySelectorAll('.chip');
-  for (var x = 0; x < all.length; x++) {
-    all[x].classList.remove('sel');
-    if (all[x].textContent === eMedioSel) all[x].classList.add('sel');
+  var isKnown = MEDIOS.indexOf(eMedioSel) !== -1;
+  if (isKnown) {
+    elEMedioSel.value = eMedioSel;
+    elEMedioOtro.style.display = 'none';
+    elEMedioOtro.value = '';
+  } else {
+    elEMedioSel.value = '__otro__';
+    elEMedioOtro.style.display = '';
+    elEMedioOtro.value = eMedioSel;
   }
   document.getElementById('editModal').classList.add('open');
 }
