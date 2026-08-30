@@ -163,7 +163,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--s
 </div>
 <div id="toast"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 <script>
 var CATS = {
   "Gastos Casa":["Arriendo","Beneficencia","Equipamiento","Mantenciones y Reparaciones Casa","Proyectos y Mejoras Casa","Otros Gastos Casa","Regalos Casa","Servicios Basicos","Transporte"],
@@ -382,47 +383,78 @@ function renderResumen() {
 // Exportar
 function exportar() {
   if (!gastos.length) { toast('Sin gastos para exportar', 'err'); return; }
-  if (typeof XLSX === 'undefined') { toast('Cargando, intenta de nuevo', 'err'); return; }
+  if (typeof ExcelJS === 'undefined') { toast('Cargando, intenta de nuevo', 'err'); return; }
 
-  var HDR_ROW = 2;
-  var DATA_START = 3;
-  var lastRow = DATA_START + gastos.length - 1;
-  var ws = {};
+  var wb = new ExcelJS.Workbook();
+  var ws = wb.addWorksheet('Gastos');
 
-  // Estilos encabezado: azul #4472C4 con texto blanco negrita, centrado
-  var hdrFont = {name:'Calibri', sz:11, bold:true, color:{rgb:'FFFFFFFF'}};
-  var hdrFill = {patternType:'solid', fgColor:{rgb:'FF4472C4'}};
-  var hdrAlign = {horizontal:'center'};
-  var hdrCols = ['Fecha','Monto','Medio de Pago','Subcategoria','Categoria','Destinatario','Descripcion','Vacaciones'];
-  var hdrLetters = ['B','C','D','E','F','G','H','I'];
-  for (var hi = 0; hi < hdrCols.length; hi++) {
-    ws[hdrLetters[hi] + HDR_ROW] = { v:hdrCols[hi], t:'s', s:{ font:hdrFont, fill:hdrFill, alignment:hdrAlign } };
-  }
+  // Anchos de columna (A=1.66, B=10.83, C=14.83, D=20.66, E=30.33, F=25, G=35.66, H=68.16, I=39.33)
+  ws.columns = [
+    {width:1.66},
+    {width:10.83},
+    {width:14.83},
+    {width:20.66},
+    {width:30.33},
+    {width:25},
+    {width:35.66},
+    {width:68.16},
+    {width:39.33}
+  ];
+
+  // Fila 1 vacía (igual al original)
+  ws.addRow([]);
+
+  // Fila 2: encabezados
+  var hdrRow = ws.addRow(['', 'Fecha', 'Monto', 'Medio de Pago', 'Subcategoría', 'Categoría', 'Destinatario', 'Descripción', 'Vacaciones']);
+  hdrRow.eachCell(function(cell) {
+    if (cell.col < 2) return;
+    cell.font = {name:'Calibri', size:11, bold:true, color:{argb:'FFFFFFFF'}};
+    cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:'FF4472C4'}};
+    cell.alignment = {horizontal:'center', vertical:'middle'};
+    cell.border = {
+      top:{style:'thin',color:{argb:'FFD9E1F2'}},
+      bottom:{style:'thin',color:{argb:'FFD9E1F2'}},
+      left:{style:'thin',color:{argb:'FFD9E1F2'}},
+      right:{style:'thin',color:{argb:'FFD9E1F2'}}
+    };
+  });
 
   // Filas de datos
-  var dataFont = {name:'Calibri', sz:11};
   for (var i = 0; i < gastos.length; i++) {
     var g = gastos[i];
-    var row = DATA_START + i;
-    ws['B'+row] = { v:g.Fecha,       t:'n', z:'D-MMM-YY', s:{ font:dataFont, alignment:{horizontal:'center'} } };
-    ws['C'+row] = { v:g.Monto,       t:'n', z:'#,##0',    s:{ font:dataFont, alignment:{horizontal:'right'} } };
-    ws['D'+row] = { v:g.MedioPago||'', t:'s', s:{ font:dataFont, alignment:{horizontal:'left'} } };
-    ws['E'+row] = { v:g.Sub||'',     t:'s', s:{ font:dataFont, alignment:{horizontal:'left'} } };
-    ws['F'+row] = { f:"VLOOKUP(E"+row+",'Plan de Cuentas'!$C$3:$D$72,2,FALSE)", t:'s', v:g.Cat||'', s:{ font:dataFont, alignment:{horizontal:'left'} } };
-    ws['G'+row] = { v:g.Dest||'',    t:'s', s:{ font:dataFont, alignment:{horizontal:'left'} } };
-    ws['H'+row] = { v:g.Desc||'',    t:'s', s:{ font:dataFont, alignment:{horizontal:'left'} } };
-    ws['I'+row] = { v:g.Vac||'',     t:'s', s:{ font:dataFont, alignment:{horizontal:'left'} } };
+    // Fecha: convertir serial Excel a Date
+    var fechaDate = new Date(Date.UTC(1899,11,30) + g.Fecha * 86400000);
+    var dataRow = ws.addRow(['', fechaDate, g.Monto, g.MedioPago||'', g.Sub||'', g.Cat||'', g.Dest||'', g.Desc||'', g.Vac||'']);
+    // Fecha: formato D-MMM-YY, centrado
+    var fechaCell = dataRow.getCell(2);
+    fechaCell.numFmt = 'D-MMM-YY';
+    fechaCell.alignment = {horizontal:'center'};
+    // Monto: formato #,##0, alineado derecha
+    var montoCell = dataRow.getCell(3);
+    montoCell.numFmt = '#,##0';
+    montoCell.alignment = {horizontal:'right'};
+    // Resto: alineado izquierda
+    for (var col = 4; col <= 9; col++) {
+      dataRow.getCell(col).alignment = {horizontal:'left'};
+    }
+    // Fuente Calibri 11 para todas
+    dataRow.eachCell(function(cell) {
+      cell.font = {name:'Calibri', size:11};
+    });
   }
 
-  // Rango, anchos de columna (igual al original) y filtros
-  ws['!ref'] = 'A' + HDR_ROW + ':I' + lastRow;
-  ws['!cols'] = [{wch:1.66},{wch:10.83},{wch:14.83},{wch:20.66},{wch:30.33},{wch:25},{wch:35.66},{wch:68.16},{wch:39.33}];
-  ws['!autofilter'] = { ref:'B' + HDR_ROW + ':I' + HDR_ROW };
+  // Autofilter en B2:I2
+  ws.autoFilter = { from: {row:2, column:2}, to: {row:2, column:9} };
 
-  var wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Gastos');
-  XLSX.writeFile(wb, 'Gastos_nuevos_' + new Date().toISOString().slice(0,10) + '.xlsx', {cellStyles:true});
-  toast('Excel descargado!');
+  // Generar y descargar
+  wb.xlsx.writeBuffer().then(function(buffer) {
+    var blob = new Blob([buffer], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    saveAs(blob, 'Gastos_nuevos_' + new Date().toISOString().slice(0,10) + '.xlsx');
+    toast('Excel descargado!');
+  }).catch(function(err) {
+    toast('Error al generar Excel', 'err');
+    console.error(err);
+  });
 }
 
 // --- Edit modal ---
