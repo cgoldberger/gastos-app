@@ -383,21 +383,45 @@ function renderResumen() {
 function exportar() {
   if (!gastos.length) { toast('Sin gastos para exportar', 'err'); return; }
   if (typeof XLSX === 'undefined') { toast('Cargando, intenta de nuevo', 'err'); return; }
-  var rows = [];
+
+  var HDR_ROW = 2;
+  var DATA_START = 3;
+  var lastRow = DATA_START + gastos.length - 1;
+  var ws = {};
+
+  // Estilos encabezado: azul #4472C4 con texto blanco negrita, centrado
+  var hdrFont = {name:'Calibri', sz:11, bold:true, color:{rgb:'FFFFFFFF'}};
+  var hdrFill = {patternType:'solid', fgColor:{rgb:'FF4472C4'}};
+  var hdrAlign = {horizontal:'center'};
+  var hdrCols = ['Fecha','Monto','Medio de Pago','Subcategoria','Categoria','Destinatario','Descripcion','Vacaciones'];
+  var hdrLetters = ['B','C','D','E','F','G','H','I'];
+  for (var hi = 0; hi < hdrCols.length; hi++) {
+    ws[hdrLetters[hi] + HDR_ROW] = { v:hdrCols[hi], t:'s', s:{ font:hdrFont, fill:hdrFill, alignment:hdrAlign } };
+  }
+
+  // Filas de datos
+  var dataFont = {name:'Calibri', sz:11};
   for (var i = 0; i < gastos.length; i++) {
     var g = gastos[i];
-    rows.push({ Fecha:g.Fecha, Monto:g.Monto, "Medio de Pago":g.MedioPago, "Subcategoria":g.Sub, "Categoria":g.Cat, Destinatario:g.Dest, "Descripcion":g.Desc, Vacaciones:g.Vac });
+    var row = DATA_START + i;
+    ws['B'+row] = { v:g.Fecha,       t:'n', z:'D-MMM-YY', s:{ font:dataFont, alignment:{horizontal:'center'} } };
+    ws['C'+row] = { v:g.Monto,       t:'n', z:'#,##0',    s:{ font:dataFont, alignment:{horizontal:'right'} } };
+    ws['D'+row] = { v:g.MedioPago||'', t:'s', s:{ font:dataFont, alignment:{horizontal:'left'} } };
+    ws['E'+row] = { v:g.Sub||'',     t:'s', s:{ font:dataFont, alignment:{horizontal:'left'} } };
+    ws['F'+row] = { f:"VLOOKUP(E"+row+",'Plan de Cuentas'!$C$3:$D$72,2,FALSE)", t:'s', v:g.Cat||'', s:{ font:dataFont, alignment:{horizontal:'left'} } };
+    ws['G'+row] = { v:g.Dest||'',    t:'s', s:{ font:dataFont, alignment:{horizontal:'left'} } };
+    ws['H'+row] = { v:g.Desc||'',    t:'s', s:{ font:dataFont, alignment:{horizontal:'left'} } };
+    ws['I'+row] = { v:g.Vac||'',     t:'s', s:{ font:dataFont, alignment:{horizontal:'left'} } };
   }
-  var ws = XLSX.utils.json_to_sheet(rows, {header:['Fecha','Monto','Medio de Pago','Subcategoria','Categoria','Destinatario','Descripcion','Vacaciones']});
-  ws['!cols'] = [{wch:12},{wch:12},{wch:18},{wch:28},{wch:18},{wch:24},{wch:40},{wch:30}];
-  var range = XLSX.utils.decode_range(ws['!ref']);
-  for (var r = 1; r <= range.e.r; r++) {
-    var cell = ws[XLSX.utils.encode_cell({r:r,c:0})];
-    if (cell) { cell.t = 'n'; cell.z = 'DD/MM/YYYY'; }
-  }
+
+  // Rango, anchos de columna (igual al original) y filtros
+  ws['!ref'] = 'A' + HDR_ROW + ':I' + lastRow;
+  ws['!cols'] = [{wch:1.66},{wch:10.83},{wch:14.83},{wch:20.66},{wch:30.33},{wch:25},{wch:35.66},{wch:68.16},{wch:39.33}];
+  ws['!autofilter'] = { ref:'B' + HDR_ROW + ':I' + HDR_ROW };
+
   var wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Gastos');
-  XLSX.writeFile(wb, 'Gastos_' + new Date().toISOString().slice(0,10) + '.xlsx');
+  XLSX.writeFile(wb, 'Gastos_nuevos_' + new Date().toISOString().slice(0,10) + '.xlsx', {cellStyles:true});
   toast('Excel descargado!');
 }
 
